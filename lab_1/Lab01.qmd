@@ -1,0 +1,39 @@
+---
+title: "Lab01"
+author: "301365816"
+date: "January 20 2025"
+format: html
+---
+
+# Problem 1b
+
+In this lab, we used the result of a from part 1a to find the correct file we 
+would need to analyze. Then, we loaded the file, and computed the mean, median,
+standard deviation, min, and max using the d-th (column 8) column given in the 
+'datasets.xlsx' file.
+
+```{r}
+# load data
+data <- read.csv("7/abalone.data",
+                 header = FALSE)
+
+# mean
+dMean <- mean(data$V8)
+sprintf(dMean, fmt = '%.3f')
+
+# median
+dMedian <- median(data$V8)
+sprintf(dMedian, fmt = '%.3f')
+
+# standard deviation
+dSD <- sd(data$V8)
+sprintf(dSD, fmt = '%.3f')
+
+# minimum
+dMin <- min(data$V8)
+sprintf(dMin, fmt = '%.3f')
+
+# maximum
+dMax <- max(data$V8)
+sprintf(dMax, fmt = '%.3f')
+```
