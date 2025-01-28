@@ -1,0 +1,144 @@
+---
+title: "Lab 02"
+subtitle: "Due Jan 31 5:00 PM PST"
+author: "Brandon Cho 301365816"
+date: "January 27 2025"
+format: html
+---
+
+
+## Instructions
+
+For this homework, provide a rendered R Markdown file in PDF format. You may render the R Markdown file to HTML and then convert the HTML file to PDF using the print function in a web browser. Indicate your student number on the markdown file and make a section for each problem.
+
+
+## Problem 1: My Median
+
+a) Write an R function called `my_median`. This function should take a single parameter (a vector) and return the median of that vector. Write this function without using the built-in R command `median`. Provide the code for this function.
+
+**(4 points)**
+
+```{r}
+# Example R code
+define_my_median <- function(vector) {
+  # Code logic here
+  n <- length(vector)
+  sortedVector <- sort(vector)
+  
+  if (n %% 2 == 1) {
+    return (sortedVector[(n + 1) / 2])
+  }
+  else {
+    return(mean(sortedVector[n / 2], sortedVector[(n / 2) + 1]))
+  }
+  
+}
+```
+
+b) Consider the stock prices in the file `AS-N100.tsv` provided in the archive for week 3. These data involve stock prices for 27 symbols (in the column `ticker`). Compute your student number modulo 27 and add one, call this value `a` (i.e., `a` is a number between 1 and 27 inclusive). Imagine a list of the 27 symbols in alphabetical order. You will examine the `a`-th symbol in this list. You may find the symbol using the R code `sort(unique(data$ticker))[a]`. Compute the median opening price of the symbol you examine over all rows in `AS-N100.tsv` involving that symbol, using your `my_median` function. Provide all code and output.
+
+**(2 points)**
+
+```{r}
+#| eval: false
+## this code doesn't run at the moment, need to modify it
+
+# Example R code to read and process
+library(readr)
+data <- read_tsv("AS-N100.tsv")
+symbols <- sort(unique(data$ticker))
+# Compute value of 'a'
+# Example of custom median application
+a <- 301365816
+a <- (a %% 27) + 1
+
+# choose the correct symbol
+selected_symbol <- symbols[a]
+
+# Filter data for the selected ticker
+filtered_data <- data[data$ticker == selected_symbol, ]
+
+# Compute the median of the opening prices
+opening_prices <- filtered_data$open
+median_price <- define_my_median(opening_prices)
+cat("Selected ticker:", selected_symbol, "\n")
+cat("Median opening price:", median_price, "\n")
+```
+
+---
+
+
+## Problem 2: X Marks the Spot
+
+a) The image `Figure03.png` (provided in the archive containing this lab) is a satellite photo of Vancouver and the surrounding area. In this problem, you will mark the location of a library on this image automatically using code. 
+
+The upper left-hand corner of this image has approximate GPS coordinates `49.410705,-124.217671`. The lower right-hand corner of this image has approximate GPS coordinates `47.929083,-121.994887`. Consider the file `libraries.json` provided in the archive for week 3. This file contains information about 21 branches of the Vancouver Public Library.
+
+Write R code to display `Figure03.png` and to mark an `X` symbol on the GPS coordinates of the `b`-th library branch. Print the name and address of the library branch directly below the `X`. Here, `b` is your student number modulo 21 plus one (i.e., `b` is a number between 1 and 21 inclusive).
+
+Note that after loading the library `rjson` and loading `libraries.json` using:
+
+```r
+libraries <- fromJSON(file = "libraries.json")
+```
+
+the coordinates of the `b`-th branch can be accessed with:
+
+```r
+libraries[["features"]][[b]][["geometry"]]$coordinates
+```
+
+The branch name and address can be accessed with:
+
+```r
+libraries[["features"]][[b]][["properties"]]$maptip
+```
+
+Provide your code and the resulting display.
+
+**(4 points)**
+
+```{r}
+
+# Load required libraries
+library(rjson)
+library(imager)
+
+# Calculate b 
+b <- (301365816 %% 21) + 1
+
+# Load libraries data
+libraries <- fromJSON(file = "libraries.json")
+
+# Get coords and name
+library_coords <- libraries[["features"]][[b]][["geometry"]]$coordinates
+library_maptip <- libraries[["features"]][[b]][["properties"]]$maptip
+
+# Read the satellite image
+img <- load.image("Figure03.png")
+
+# Set up plot area with geographic bounds
+plot(NA, 
+     xlim = c(-124.217671, -121.994887), 
+     ylim = c(47.929083, 49.410705), 
+     axes = FALSE)
+
+# Display the satellite image
+rasterImage(img, 
+            xleft = -124.217671, 
+            ybottom = 47.929083,
+            xright = -121.994887, 
+            ytop = 49.410705)
+
+# Plot X marker at the library's coordinates
+points(x = library_coords[1], 
+       y = library_coords[2], 
+       pch = 4, 
+       col = "red", 
+       lwd = 5)
+
+text(library_coords[1], 
+     library_coords[2] - 0.1, 
+     library_maptip, 
+     col = "blue")
+```
