@@ -1,0 +1,114 @@
+---
+title: "Lab 03 "
+subtitle: "Due Feb 7 5:00 PM PST"
+author: "Brandon Cho - 301365816"
+format: html
+---
+
+# Problem 1: Hazardous waste
+
+
+
+**(2 points)**
+
+```{r}
+#| warning: false
+## write answer here
+library(DBI)
+library(RSQLite)
+library(readr)
+
+# connect to database
+db <- dbConnect(SQLite(), dbname = "combined.sqlite")
+incin_data <- read_csv("incinerated.new")
+incin_firstrows <- head(incin_data, 4)
+dbWriteTable(conn = db, 
+             name = "incin",
+             value = incin_firstrows, 
+             overwrite = TRUE)
+
+# check if rows are correct
+data <- dbReadTable(db,"incin")
+print(data)
+```
+
+## Part b)
+
+
+**(2 points)**
+
+```{r}
+## write answer here
+
+# get last 3 rows
+incin_lastrows <- tail(incin_data, 3)
+
+# loop 3 times to insert to database
+for (i in 1:nrow(incin_lastrows)) {
+  request <- sprintf(
+    "INSERT INTO incin (Country, Year, Value) VALUES ('%s', %f, %f);",
+    incin_lastrows$Country[i], 
+    incin_lastrows$Year[i],
+    incin_lastrows$Value[i]
+  )
+  
+  dbExecute(db, request)
+}
+
+# Print last 3 rows 
+incin_updated <- dbReadTable(db, "incin")
+print(tail(incin_updated, 3))
+```
+
+
+## Part c)
+
+
+
+**(4 points)**
+
+
+```{r}
+
+## write answer here
+generated_data <- read.csv("generated.new")
+incinerated_data <- read.csv("incinerated.new")
+landfilled_data <- read.csv("landfilled.new")
+recycled_data <- read.csv("recycled.new")
+
+# Insert new rows 
+for (i in 1:nrow(generated_data)) {
+  request <- sprintf(
+    "INSERT INTO lab03combined (Country, Year, Generated, Incinerated, Landfilled, Recycled) 
+     VALUES ('%s', %f, %f, %f, %f, %f);",
+    generated_data$Country[i], 
+    generated_data$Year[i], 
+    generated_data$Value[i], 
+    incinerated_data$Value[i], 
+    landfilled_data$Value[i], 
+    recycled_data$Value[i]
+  )
+  dbExecute(db, request)
+}
+
+```
+
+
+
+## Part d)
+
+
+**(2 points)**
+
+```{r}
+
+## write answer here
+lab03combined_data <- dbReadTable(db, "lab03combined")
+
+dbDisconnect(db)
+print(tail(lab03combined_data, 7))
+
+```
+
+## Part e) (Optional Bonus)
+We could possibly do an SQL join by country and year, then loop though the joined data, inserting data if there is a match.
