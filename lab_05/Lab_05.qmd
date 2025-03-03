@@ -1,0 +1,93 @@
+---
+title: "Lab 05"
+subtitle: "Due March 7, 5:00 PM PST"
+author: "Brandon Cho - 301365816"
+format: html
+---
+
+
+Modify this template file to create your submission.
+
+```{r}
+#| warning: false
+## write answer here
+library(tidyverse)
+
+# Load the bird sightings data and species names
+ebird <- read.csv("ebird30.csv", stringsAsFactors = FALSE)
+names_df <- read.csv("names.csv", stringsAsFactors = FALSE)
+
+
+```
+
+# Problem 1a
+
+
+```{r}
+#| warning: false
+regions <- c("CA.MB", "CA.BC", "CA.AB", "CA.SK", "CA.ON", 
+             "CA.QC", "CA.NL", "CA.NS", "CA.NB", "CA.PE", 
+             "CA.NT", "CA.NU", "CA.YT")
+
+region_counts <- setNames(rep(0, length(regions)), regions)
+
+# Loop through each species (row in ebird) and count nonzero sightings per region
+for (i in 1:nrow(ebird)) {
+  for (region in regions) {
+    count <- as.numeric(ebird[i, region])
+    if (!is.na(count) && count > 0) {
+      region_counts[region] <- region_counts[region] + 1
+    }
+  }
+}
+
+source('canada.R')
+
+# Create a heat list with zeros for all regions
+heat <- as.list(setNames(rep(0, length(regions)), regions))
+
+# Set only CA.BC to its count (or any nonzero value you wish to highlight)
+heat[["CA.BC"]] <- region_counts[["CA.BC"]]
+
+title <- "Bird Heatmap: Only CA.BC"
+canada(title, heat)
+
+```
+
+
+## Problem 1b
+
+
+```{r}
+#| warning: false
+## write answer here
+
+ebird$total <- rowSums(ebird[, -1], na.rm = TRUE)
+
+
+max_species <- ebird[which.max(ebird$total), ]
+max_species <- max_species$Code
+
+res <- names_df[names_df$Code == max_species, ]
+res$Code
+res$Common.Name
+res$Scientific.Name
+
+```
+
+
+## Problem 1c
+
+
+
+```{r}
+## write answer here
+smallest_count <- ebird[ebird$total != 0, ]
+smallest_count_num <- min(smallest_count$total)
+smallest_count <- smallest_count[smallest_count$total == smallest_count_num, ]
+
+smallest_count$common_name <- names_df$Common.Name[match(smallest_count$Code, names_df$Code)]
+
+sorted_birds <- sort(smallest_count$common_name)
+head(sorted_birds, 10)
+```

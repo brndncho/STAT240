@@ -1,0 +1,5 @@
+install.packages("sf")
+install.packages("geojsonio")
+install.packages("tidyverse")
+install.packages("rmapshaper")
+install.packages("paletteer")
