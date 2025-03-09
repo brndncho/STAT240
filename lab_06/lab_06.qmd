@@ -1,0 +1,99 @@
+---
+title: "Lab 06"
+subtitle: "Due March 15, 5:00 PM PST"
+author: "Brandon Cho - 301365816"
+format: html
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+Modify this template file to create your submission.
+
+# Problem 1a
+
+
+```{r}
+## write your answer here
+library(carData)
+data("Prestige")
+data_subset <- Prestige[, c("education", "income")]
+
+set.seed(100)
+
+prop_train <- 0.75
+prop_test <- 1 - prop_train
+
+n_data <- nrow(data_subset)
+
+train_test <- sample(c("Train", "Test"),
+                     size = n_data, replace = TRUE,
+                     prob = c(prop_train, prop_test))
+
+training_set <- data_subset[train_test == "Train",]
+test_set <- data_subset[train_test =="Test",]
+
+
+```
+
+
+## Problem 1b
+
+
+```{r}
+## write answer here
+fit_train <- lm(income ~ education, data = training_set)
+fit_predictions <- predict(fit_train, newdata = test_set)
+
+RMSPE <- sqrt( mean((fit_predictions - test_set$income)^2))
+cat("RMSPE = ", RMSPE, "\n")
+```
+
+
+## Problem 1c
+
+
+
+```{r}
+## write answer here
+library(caret)
+
+K_vals <- seq(from = 1, to = 50, by = 1)
+K_RMSPE <- rep(NA, length(K_vals))
+set.seed(100)
+
+CV_folds <- sample(1:5, size = nrow(training_set), replace = TRUE)
+num_folds <- 5
+
+for (j in 1:length(K_vals)) {
+  k <- K_vals[j]
+  CV_RMSPE <- rep(NA, num_folds)
+  
+  for (i in 1:num_folds) {
+    cv_train <- training_set[CV_folds != i,]
+    cv_val <- training_set[CV_folds == i,]
+    fit_knn <- knnreg(income ~ education, data = cv_train, k = k)
+    cv_pred <- predict(fit_knn, cv_val)
+    CV_RMSPE[i] <- sqrt( mean ((cv_pred - cv_val$income)^2))
+  }
+  K_RMSPE[j] <- mean(CV_RMSPE)
+}
+
+best_k <- K_vals[which.min(K_RMSPE)]
+cat("Best K from cross-validation:", best_k, "\n")
+plot(K_RMSPE)
+```
+
+
+## Problem 1d
+
+```{r}
+## write your answer here
+fit_knn <- knnreg(income ~ education, data = training_set, k = 10)
+fit_knn_prediction <- predict(fit_knn, test_set)
+RMSPE_knn <- sqrt (mean((fit_knn_prediction - test_set$income)^2))
+cat("RMSPE = ", RMSPE_knn, "\n")
+cat("Yes, the knn model has a lower RMSPE value than linear regression, therefore it gives better predictions.")
+```
+
