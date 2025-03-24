@@ -1,0 +1,80 @@
+---
+title: "Lab 08"
+subtitle: "Due March 28, 5:00 PM PST"
+author: "Brandon Cho - 301365816"
+format: html
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+Modify this template file to create your submission.
+
+# Problem 1a
+
+
+```{r}
+## write your answer here
+library(tidytext)
+library(janeaustenr)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+
+book_words <- austen_books() |>
+  unnest_tokens(word, text)
+
+sense_words <- book_words |> 
+  filter(book == "Sense & Sensibility") |>
+  mutate(long_word = str_length(word) >= 10) |>
+  summarize(proportion = mean(long_word))
+
+sense_words
+
+```
+
+
+## Problem 1b
+
+
+```{r}
+## write answer here
+book_years <- tibble(
+  book = c("Sense & Sensibility", "Pride & Prejudice", "Mansfield Park", 
+           "Emma", "Northanger Abbey", "Persuasion"),
+  year = c(1811, 1813, 1814, 1815, 1817, 1817) 
+)
+
+book_proportions <- book_words |>
+  group_by(book) |> 
+  summarize(proportion = mean(str_length(word) >= 10)) |> 
+  left_join(book_years, by = "book")
+
+ggplot(book_proportions, aes(x = year, y = proportion)) +
+  geom_point() +
+  labs(x = "Publication Year", y = "Proportion of 10+ Letter Words Per Book")
+```
+
+
+## Problem 1c
+
+
+
+```{r}
+## write answer here
+seven_words <- book_words |>
+  mutate(word_length = str_length(word)) |>
+  filter(word_length == 7) |>
+  filter(str_detect(word, "^[wxyz]"), str_detect(word, "e$")) |>
+  distinct(word) |>
+  arrange(word)
+
+seven_words
+seven_words_count <- nrow(seven_words)
+seven_words_count
+
+```
+
+
+
