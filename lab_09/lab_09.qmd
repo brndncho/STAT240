@@ -1,0 +1,126 @@
+---
+title: "Lab 09"
+subtitle: "Due April 4, 5:00 PM PST"
+author: "Brandon Cho - 301365816"
+format: html
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+Modify this template file to create your submission.
+
+## Problem 1a
+
+
+```{r}
+## write your answer here
+data(iris)
+iris_data <- iris[, c(1, 2)]
+
+set.seed(101)
+iris_kmeans <- kmeans(iris_data, centers = 3, iter.max = 100, nstart= 10)
+
+iris_kmeans
+```
+
+
+## Problem 1b
+
+
+```{r}
+## write answer here
+plot(iris_data, col = iris_kmeans$cluster, pch = 20,
+     main = "Iris Data Clustering", xlab = "Sepal.Length", ylab = "Sepal.Width")
+```
+
+
+## Problem 2a
+
+
+
+```{r}
+## write answer here
+library(stringr)
+small_sentences <- sentences[1:10]
+words_vector <- unlist(str_split(small_sentences, "\\s+"))[1:20]
+
+four_letter_words <- ifelse(str_detect(words_vector, "^[A-Za-z]{4}$"), words_vector, NA)
+
+four_letter_words
+
+```
+
+
+## Problem 2b
+
+```{r}
+## write answer here
+words_bc <- str_subset(words_vector, "^[bcBC]")
+words_bc
+```
+
+## Problem 2c
+
+```{r}
+## write answer here
+non_alpha_words <- str_subset(words_vector, "[^A-Za-z]")
+non_alpha_words
+```
+
+## Problem 3a
+
+```{r}
+## write answer here
+pois_llh <- function(theta, n, x) {
+  -n * theta + log(theta) * sum(x)
+}
+
+llh_value <- pois_llh(theta = 1, n = 5, x = c(1, 2, 3, 4, 5))
+llh_value
+```
+
+## Problem 3b
+
+```{r}
+## write answer here
+theta_vals = seq(from = 0.1, to = 8, length.out = 100)
+log_likelihood <- sapply(theta_vals, pois_llh, n = 5, x = c(1, 2, 3, 4, 5))
+
+plot(theta_vals, log_likelihood, type = "l", xlab = "θ", ylab = "Log-Likelihood")
+
+print("It seems from the plot that the maximum likelihood estimate is around theta = 3.")
+```
+
+## Problem 4a
+
+```{r}
+## write answer here
+library(class)
+
+ad_data <- read.csv("ad_data.csv")
+
+set.seed(100)
+prop_train <- 0.7
+prop_test <- 1 - prop_train
+n_data <- nrow(ad_data)
+train_test <- sample(c("Train", "Test"),
+size = n_data, replace = TRUE,
+prob = c(prop_train, prop_test))
+training_data <- ad_data[train_test == "Train", ]
+testing_data <- ad_data[train_test == "Test", ]
+
+train_pred <- data.frame(EstimatedSalary = training_data$EstimatedSalary)
+test_pred <- data.frame(EstimatedSalary = testing_data$EstimatedSalary)
+fit_knn <- knn(train = train_pred, test = test_pred, cl = training_data$Purchased, k = 5)
+```
+
+## Problem 4b
+
+```{r}
+## write answer here
+accuracy <- mean(fit_knn == testing_data$Purchased)
+accuracy
+```
+
