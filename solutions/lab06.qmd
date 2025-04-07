@@ -1,0 +1,90 @@
+---
+title: "lab06"
+format: html
+---
+
+Problem 1
+In this problem we will use data from the 1971 Canadian census, which looks at the relationship
+between the average education and income of people in 100 different professions. This data is
+included in the R package carData which you will need to install. Then, this data, in a data
+frame Presitge, can be loaded in using the following code:
+```{r}
+## write answer here
+library(carData)
+data("Prestige")
+```
+
+
+Problem 1a
+We will first split the data into a training and a test set, with ~75% in the training set and
+~25% in the test set. Use set.seed(100). Write some code to do this, calling each the
+training_set and the test_set in your R code.
+1
+```{r}
+## write answer here
+set.seed(100)
+prop_train <- 0.75
+prop_test <- 1 - prop_train
+n_data <- nrow(Prestige)
+train_test <- sample(c("Train", "Test"),
+      size = n_data, replace = TRUE,
+      prob = c(prop_train, prop_test))
+training_set <- Prestige[train_test == "Train", ]
+test_set <- Prestige[train_test == "Test",]
+
+```
+
+
+Problem 1b
+Now fit a linear regression to this training data and compute the RMSPE when this regression
+is used to predict on the test data. Be sure to print out this RMSPE.
+```{r}
+## write answer here
+fit <- lm(income ~ education, data = training_set)
+est_Y <- predict(fit, newdata = test_set)
+RMSPE <- sqrt( mean( (est_Y - test_set$income) ^2) )
+RMSPE
+
+```
+
+Problem 1c
+Now we will tune KNN for this data, before later predicting for the test data. For K taking a
+range of possible values from 𝐾 = 1 to 𝐾 = 50, use 5-fold CV to determine which value of K
+gives the best CV-RMSPE on this data. Plot this result and clearly state the choice of 𝐾.
+
+```{r}
+## write answer here
+library(caret)
+2
+Loading required package: ggplot2
+Loading required package: lattice
+K_vals <- seq(from = 1, to = 50, by = 1)
+K_RMSPE <- rep(NA, length(K_vals))
+CV_folds <- sample(1:5, size = nrow(training_set), replace = TRUE)
+num_folds <- 5
+for(j in 1:length(K_vals)) {
+  k <- K_vals[j]
+  CV_RMSPE <- rep(NA, num_folds)
+    for(i in 1:num_folds){
+      cv_train <- training_set[CV_folds != i, ]
+      cv_val <- training_set[CV_folds == i, ]
+      fit_knn <- knnreg(income ~ education, data = cv_train, k = k)
+      cv_pred <- predict(fit_knn, cv_val)
+      CV_RMSPE[i] <- sqrt( mean( (cv_pred - cv_val$income)^2) )
+  }
+  K_RMSPE[j] <- mean(CV_RMSPE)
+}
+plot(K_vals, K_RMSPE, type = "l")
+which.min(K_RMSPE)
+```
+
+Problem 1d
+For the best 𝐾 in the previous part, use this choice of 𝐾 to compute the RMSPE on the test
+data. Does this model give better predictions than linear regression?
+```{r}
+## write answer here
+fit_knn <- knnreg(income ~ education, data = training_set, k = 9)
+est_Y_knn <- predict(fit_knn, test_set)
+RMSPE_knn <- sqrt( mean( (est_Y_knn - test_set$income) ^2) )
+RMSPE_knn
+```

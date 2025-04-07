@@ -1,0 +1,68 @@
+---
+title: "lab05"
+format: html
+---
+
+Problem 1
+This problem is about bird sightings in Canada. The files ebird30.csv and names.csv contain
+data contributed by citizen scientists in 30 days to eBird: A resource maintained by the Cornell
+Lab of Ornithology. The file ebird30.csv is a comma separated variable file with headers, and
+one row per bird species. The first column is named Code and contains the code for each bird
+species available in the data (these codes were created by eBird). The remaining columns are
+named according to the provinces and territories (regions) of Canada (for example, CA.NU is
+Nunavut). For each bird species and region, the corresponding entry of ebird30.csv indicates
+the number of birds of that species observed in that region in the past 30 days. The file
+names.csv is a comma separated variable file with headers, and one row per bird species. The
+first column is the code for a species of bird, and the remaining columns are the common name
+and scientific name for that bird. Included in the archive for this lab is an R script canada.R.
+This script contains a function canada that will make a heatmap of Canada, showing values
+for each province. This script requires that several packages be installed (they can be installed
+using the script packages.R)
+1
+Problem 1a)
+How many bird species have been spotted in only one region of Canada? Verify that your
+number is correct by using the Canada function to plot the counts of one the bird species you
+identify as being spotted in only one region of Canada (all regions should be dark blue except
+one). Provide the plot.
+
+```{r}
+## write answer here
+source("canada.R")
+birds <- read.csv("ebird30.csv")
+names <- read.csv("names.csv")
+one_region <- which(apply(birds[, 2:14], 1, function(x) sum(x > 0)) == 1)
+one_region
+
+name <- names[one_region[1], ]
+comm_name <- name$Common.Name
+heat <- list()
+for (i in 1:13) {
+heat[[colnames(birds)[i+1]]] = birds[one_region[1], colnames(birds)[i+1]]
+}
+canada(title = comm_name, heat = heat)
+
+```
+
+Problem 1b)
+Which bird species has the highest count, summed across all regions? Give the common name,
+and the scientific name
+```{r}
+## write answer here
+total_count <- apply(birds[, 2:14], 1, sum)
+names[which.max(total_count), ]
+```
+
+Which bird species has the smallest non-zero count, summed across all regions? If there are
+more than one, provide the number of bird species that are tied for smallest non-zero count,
+and sort their common names in alphabetical order and list the first 10. (Hint: The sort
+function applied to a vector of strings will return a sorted version of the strings in alphabetical
+order.)
+
+```{r}
+## write answer here
+total_count <- apply(birds[, 2:14], 1, sum)
+smallest <- names[which(total_count == 1), ]$Common.Name
+sort(smallest)[1:10]
+
+```
+

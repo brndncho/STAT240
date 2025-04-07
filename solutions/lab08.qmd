@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+format: html
+---
+Problem 1a
+Looking only at the book “Sense and Sensibility”, determine the proportion of words in this
+text which contain 10 or more letters. You can include all words (for this text) that are
+contained in book_words. Note that we did not cover a function to do this in class, so you
+should consult the documents for the stringr package available here.
+```{r}
+## write answer here
+ss_book <- book_words[book_words$book == "Sense & Sensibility", ]
+n_words <- nrow(ss_book)
+n_words
+
+ss_book$length <- str_length(ss_book$word)
+sum(ss_book$length > 9)/n_words
+
+
+```
+
+Problem 1b
+Now compute this quantity for each of the books in book_words. Similarly, determine the year
+each book was published. Construct a plot where the x axis is the publication year and the y
+axis is the proportion of words with 10 or more letters for each of the books in book_words.
+(5 points)
+Hint: There are many ways you could get the year a book was published. For some of these
+books it may be contained in this dataset.
+
+```{r}
+## write answer here
+prop <- book_words |>
+group_by(book) |>
+mutate(length = str_length(word)) |>
+summarise(prop_long = sum(length > 9)/ n())
+## can get some of this from the data
+# some_years <- book_words |>
+# group_by(book) |>
+# mutate(line = row_number()) |>
+# mutate(year = str_extract(word, pattern = "\\d{4}")) |>
+2
+# drop_na() |>
+# filter(line < 8) |>
+# select(book, year)
+#
+#
+# others <- tibble(book = c("Emma", "Pride and Prejudice"),
+# year = c("1815", "1813"))
+#
+# years <- bind_rows(some_years, others)
+prop$year <- c(1811, 1813, 1814, 1815, 1803, 1818)
+prop |>
+ggplot(aes(year, prop_long)) +
+geom_point() +
+theme_bw()
+
+```
+
+Problem 1c
+Now we will slightly modify the previous problem. For all books in this dataset, find all seven
+letter words which start with the last 4 letters in the alphabet and end with e. How many
+such unique words are there, and what are they?
+```{r}
+## write answer here
+words <- book_words |>
+group_by(book) |>
+mutate(line = row_number()) |>
+mutate(word = str_extract(word, pattern = "^[w-z].....e$")) |>
+drop_na() |>
+pull(word)
+unique(words)
+```
+

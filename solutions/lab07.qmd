@@ -1,0 +1,125 @@
+---
+title: "lab07"
+format: html
+---
+
+Problem 1 (Clustering)
+In class last week we wrote an R function my_dist, to compute the distance between points
+and a set of centroids. This is a key component in the implementation of k-means clustering.
+In this problem we will build on that code to implement k-means clustering from scratch.
+Problem 1a
+Solve the first Exercise problem in last weeks slides, where you write an R function my_dist
+which will return the distance between 𝑛 data points and 𝐾 centroids in an 𝑛 × 𝐾 matrix.
+```{r}
+## write answer here
+my_dist <- function(data, centroids) {
+n_data <- nrow(data)
+1
+K <- nrow(centroids)
+dist_mat <- matrix(NA, nrow = n_data, ncol = K)
+for(i in 1:n_data){
+for(k in 1:K) {
+## compute distance between point i and centroid k
+dist_mat[i, k] <- dist(rbind(data[i,], centroids[k, ]))
+}
+}
+dist_mat
+}
+set.seed(100)
+peng_scaled <- read_csv("peng_scaled.csv")
+
+
+centroids <- sample_n(peng_scaled, size = 3)
+head(my_dist(peng_scaled, centroids))
+
+```
+
+
+Problem 1b
+Write your own implementation of the k-means without using any libraries and without using
+the R function kmeans, as a function called my_kmeans. It should work for datasets of arbitrary
+dimension D, and should return the centroids and the cluster assignments of the last iteration
+of the algorithm. You may work from the code from the slides for Week 9 (but extend
+2
+from 2 dimensions to arbitrary dimension, and use your own my_dist function). For stopping
+condition, have your function take two parameters (in addition to a parameter for the data):
+• A maximum number of iterations such that if the number of iterations reaches this
+maximum number, the iterations stop,
+• A threshold such that if the all Euclidean distances between the centroids before an
+iteration and after an iteration is less than this threshold, the iterations stop.
+Set reasonable default values for these parameters. Provide your code, and write a one paragraph help for your function, indicating the names of the parameters, and the nature of the
+return value.
+
+```{r}
+## write answer here
+my_kmeans <- function(data, K = 3, max_iter = 100, threshold = 0.01) {
+# Convert data to a matrix if it's not already
+data <- as.matrix(data)
+# Number of data points and dimension
+n <- nrow(data)
+d <- ncol(data)
+# Randomly initialize centroids by sampling k points from data
+set.seed(123) # You can remove or change the seed if you wish
+init_indices <- sample(n, K)
+centroids <- data[init_indices, , drop = FALSE]
+# Vector to store cluster assignments
+clusters <- rep(0, n)
+# K-means iterations
+for (iter in 1:max_iter) {
+# Store old centroids for convergence check
+old_centroids <- centroids
+# 1) Assign each point to the cluster with the closest centroid
+curr_dist <- my_dist(data, centroids)
+clusters <- apply(curr_dist, 1, which.min)
+# for (i in 1:n) {
+# distances <- numeric(k)
+# for (j in 1:k) {
+# distances[j] <- my_dist(data[i, ], centroids[j, ])
+# }
+3
+# clusters[i] <- which.min(distances)
+# }
+# 2) Update centroids based on current assignments
+for (j in 1:K) {
+cluster_points <- data[clusters == j, , drop = FALSE]
+if (nrow(cluster_points) > 0) {
+centroids[j, ] <- colMeans(cluster_points)
+} else {
+# If no points assigned to the cluster, keep the old centroid
+centroids[j, ] <- old_centroids[j, ]
+}
+}
+# 3) Check convergence (max distance between old & new centroids)
+max_shift <- 0
+for (j in 1:K) {
+shift <- dist(rbind(old_centroids[j, ], centroids[j, ]))
+if (shift > max_shift) {
+max_shift <- shift
+}
+}
+if (max_shift < threshold) {
+break
+}
+}
+# Return final assignments and centroids
+return(list(
+centroids = centroids,
+clusters = clusters
+))
+}
+```
+
+
+Problem 1c
+Now implement your clustering method for peng_scaled with 𝐾 = 3 clusters. Choose the
+maximum number of iterations to be 100 and the threshold to be 0.001.
+Compare the clusters from your implementation to those from the kmeans function, with the
+corresponding values. Do they return the same clustering assignments? How can you tell?
+
+```{r}
+## write answer here
+fit <- my_kmeans(data = peng_scaled, K = 3,
+max_iter = 100, threshold = 0.001)
+orig <- kmeans(peng_scaled, centers = 3, iter.max = 100, nstart = 10)
+table(fit$clusters, orig$cluster)
+```

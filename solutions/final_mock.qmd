@@ -1,0 +1,155 @@
+---
+title: "final_mock"
+format: html
+---
+
+## problem 1
+In this question we will use the iris dataset (included in R) to perform k-means clustering. The following code should be included to first process the data (as we will only use 2
+predictors).
+```{r}
+## write answer here
+data(iris)
+iris_data <- iris[, c(1, 2)]
+
+```
+
+
+Problem 1a
+Using iris_data, perform k-means clustering with 𝑘 = 3 clusters in the data. Be sure to set
+the maximum number of iterations to 100 and perform at least 10 random starts. Save the
+estimated clusters as iris_kmeans.
+```{r}
+## write answer here
+iris_kmeans <- kmeans(iris_data, centers = 3, iter.max = 100, nstart = 10)
+```
+
+
+Problem 1b
+Plot the data in iris_data as a scatter plot, where the points are colored by the estimated
+clusters you obtain from iris_kmeans.
+
+```{r}
+## write answer here
+plot(iris_data$Sepal.Length, iris_data$Sepal.Width, col = iris_kmeans$cluster)
+```
+
+
+Problem 2
+The stringr package contains a dataset sentences consisting of some short sentences. We
+will use a subset of these words, which can be obtained with the following code.
+```{r}
+## write answer here
+library(stringr)
+small_sentences <- sentences[1:10]
+words_vector <- unlist(str_split(small_sentences, "\\s+"))[1:20]
+```
+
+
+Problem 2a
+Using words_vector, construct a regular expression to extract the first 4 letter word from
+each of these sentences. You can show a vector where the element is either a 4 letter words in
+words_vector or NA if the corresponding element in words_vector is not a 4 letter word.
+```{r}
+## write answer here
+str_extract(words_vector, pattern = "^....$")
+```
+
+
+Problem 2b
+Again using words_vector, return all words which start with the letter b or c
+```{r}
+## write answer here
+words_vector[str_detect(words_vector, pattern = "^[b-c]")]
+```
+
+
+Problem 2c
+Using words_vector, extract a vector containing only words which have additional characters
+beyond the 26 letters in the alphabet.
+```{r}
+## write answer here
+words_vector[str_detect(words_vector, pattern = "\\W")]
+```
+
+
+
+Suppose you were given a statistical model which had the following log-likelihood function,
+log ℒ = −𝑛𝜃 + log(𝜃)
+𝑛
+∑
+𝑖=1
+𝑥𝑖
+,
+where 𝜃 is the parameter in this model, 𝑛 is the number of observations and each of these
+observations are 𝑥1
+, 𝑥2
+, … , 𝑥𝑛.
+Here log is the natural logarithm.
+
+Problem 3a
+Write a function pois_llh which will take in as input values of theta,n, and a vector x and
+compute the log-likelihood. What does this return for the values pois_llh(theta = 1, n =
+5, x = c(1, 2, 3, 4, 5))?
+```{r}
+## write answer here
+pois_llh <- function(theta, n, x) {
+llh <- -n * theta + log(theta) * sum(x)
+llh
+}
+pois_llh(theta = 1, n = 5, x = c(1:5))
+```
+
+
+
+Problem 3b
+With n and x fixed at the values in the previous part, evaluate this function at the range of
+values of theta_vals = seq(from = 0.1, to = 8, length.out = 100). Construct a plot
+of these values of the log-likelihood and identify the maximum likelihood estimate using the
+plot. You do not have to identify it exactly, just an educated guess based on the plot.
+```{r}
+## write answer here
+theta_vals <- seq(from = 0.1, to = 8, length.out = 100)
+lik_vals <- pois_llh(theta_vals, n = 5, x = 1:5)
+plot(theta_vals, lik_vals, type = "l")
+```
+
+Problem 4
+In this problem we will use KNN to do classification, predicting a binary variable purchased
+in ad_data.csv (download instructions are given on the first page).
+The following code will split this data into training and test data, assuming you have read it
+in as ad_data.
+```{r}
+## write answer here
+ad_data <- read.csv("ad_data.csv")
+set.seed(100)
+prop_train <- 0.7
+prop_test <- 1 - prop_train
+n_data <- nrow(ad_data)
+train_test <- sample(c("Train", "Test"),
+size = n_data, replace = TRUE,
+prob = c(prop_train, prop_test))
+training_data <- ad_data[train_test == "Train", ]
+testing_data <- ad_data[train_test == "Test", ]
+```
+
+
+Problem 4a
+Fit KNN on this training data where we use the variable EstimatedSalary as the single
+preddictor, with 𝐾 = 5 and store the fit in an object called fit_knn. To do this you also need
+to pass in the predictors in testing_data. (3 points)
+
+```{r}
+## write answer here
+library(class)
+fit_knn <- knn(train = as.matrix(training_data$EstimatedSalary),
+test = as.matrix(testing_data$EstimatedSalary),
+cl = training_data$Purchased, k = 5)
+```
+
+
+Compute the Accuracy of this KNN model on the test data. (2 points)
+```{r}
+## write answer here
+mean(fit_knn != testing_data$Purchased)
+
+```

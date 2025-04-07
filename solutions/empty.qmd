@@ -1,0 +1,29 @@
+---
+title: "empty"
+format: html
+---
+
+```{r}
+## write answer here
+
+```
+
+```{r}
+## write answer here
+
+```
+
+```{r}
+## write answer here
+
+```
+
+```{r}
+## write answer here
+
+```
+
+```{r}
+## write answer here
+
+```

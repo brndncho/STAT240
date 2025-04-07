@@ -1,0 +1,119 @@
+---
+title: "lab03"
+format: html
+---
+
+Problem 1: Hazardous waste
+The material for this lab includes data about hazardous waste in Austria, Armenia and Azerbaijan acquired from data.un.org. In the sqlite file combined.sqlite a table called ‘lab03combined’
+is provided. This table has 6 columns: ‘Country’, ‘Year’, ‘Generated’, ‘Incinerated’, ‘Landfilled’, ‘Recycled’. This table indicates the amount of hazardous waste generated, incinerated,
+landfilled or recycled (in tonnes) in the corresponding year and country, according to the
+UNSD/UNEP Questionnaire on Environment Statistics. For example, the first row of this
+table is:
+Country Year Generated Incinerated Landfilled Recycled
+Armenia 1998 286,607 0 286,607 0
+This row indicates that in 1998 in Armenia, 286,607 tonnes of hazardous waste were generated
+according to the survey. The years provided in the sqlite file span 1995 to 2012. Note that not
+all countries have the same set of provided years.
+Part a)
+As a first initial task you should take the data from incinerated.new, a csv file, and create a
+new table from this data. Write the first 4 rows of this dataset to a new table in the database,
+calling this table incin.
+
+
+```{r}
+## write answer here
+library(RSQLite)
+db <- dbConnect(SQLite(), dbname = "combined.sqlite")
+incinerated <- read.csv("incinerated.new")
+1
+dbWriteTable(
+conn = db,
+name = "incin",
+value = incinerated[1:4, ],
+row.names = FALSE,
+overwrite = TRUE
+)
+
+```
+
+
+Part b)
+Now use dbExecute and INSERT to add the final three rows of incinerated.new to this table
+incin. Print out the final three rows of incin to confirm you have done this correctly.
+```{r}
+## write answer here
+for(i in 5:7){
+query <- paste0("INSERT INTO incin VALUES ('",
+incinerated$Country[i], "', ", incinerated$Year[i],
+", ", incinerated$Value[i],
+"", ")")
+dbExecute(db, query)
+}
+incin_data <- dbReadTable(db, "incin")
+tail(incin_data, 3)
+```
+
+
+Part c)
+Your next task is to update the original table in the database with all the new, more recent
+data. The new data are provided in the comma separated variable files generated.new,
+incinerated.new, landfilled.new, and recycled.new (corresponding to the respective
+columns of the sqlite table). Write a R script that will update the sqlite table with these
+new data by inserting the new data to the end of the table. One new row must be inserted
+into the sqlite table for each unique Country/Year pair.
+2
+You can assume (initially) that each of these files contains the same number of
+rows, and that each file will contain the same value of country and year in the
+same rows.
+For example, since the first row of data in generated.new is:
+Armenia,2015,555075
+and the first row of incinerated.new is:
+Armenia,2015,3767
+a new row must be inserted into the combined.sqlite lab03combined table with Country value
+Armenia, Year value 2015, Generated value 555,075 and Incinerated value 3,767 (and so on
+for Landfilled and Recycled, drawn from their corresponding .new files).
+Write your code using dbExecute and INSERT statements. Do not hard code the INSERT
+statements (i.e., if new .new files were provided again 5 years from now with the same format
+and filenames, rerunning your code should further update the database to insert the next
+version of the data, regardless of how many rows are in the new .new files.)
+```{r}
+## write answer here
+db <- dbConnect(SQLite(), dbname = "combined.sqlite")
+generated <- read.csv("generated.new")
+landfill <- read.csv("landfilled.new")
+recyled <- read.csv("recycled.new")
+## since we can assume the number of rows is the same, each
+## row in each file contains the same country and the same year
+## we can just directly insert this data in row by row
+for(i in 1:nrow(generated)){
+query <- paste0("INSERT INTO lab03combined VALUES ('",
+generated$Country[i], "', ", generated$Year[i],
+", ", generated$Value[i],
+", ", incinerated$Value[i],
+", ", landfill$Value[i],
+", ", recyled$Value[i],
+"", ")")
+dbExecute(db, query)
+}
+```
+
+
+Part d)
+Print the last 7 rows of the updated sqlite table. You can do this by dumping the updated
+sqlite table into a R data frame, and then printing the last 7 rows of the data frame.
+(2 points)
+
+```{r}
+## write answer here
+updated_table <- dbReadTable(db, "lab03combined")
+## note that even if you overwrite the data multiple times
+## you will just keep adding the 7 rows at the end
+## so you should get the same answer here regardless
+tail(updated_table, 7)
+
+```
+
+```{r}
+## write answer here
+
+```

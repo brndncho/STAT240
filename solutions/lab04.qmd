@@ -1,0 +1,139 @@
+---
+title: "lab04"
+format: html
+---
+
+Problem 1a)
+Write an R function called my.lm that takes a vector x and a vector y and returns the slope a
+and y-intercept b of the line 𝑓(𝑥) = 𝑎𝑥 + 𝑏 that minimizes the sum of squared errors between
+𝑓(𝑥𝑖
+) and $ y_i$. Your function must not make use of the R functions lm, lm.fit, or any R
+function that does linear regression (you may, however, use functions like sum or mean). Your
+function should return a named list with two elements named a and b. Provide your code.
+You may use the following code as a template:
+
+```{r}
+## write answer here
+my_lm <- function(x, y) {
+mean_x <- mean(x)
+mean_y <- mean(y)
+b <- sum( (x - mean_x) * (y - mean_y) )/ sum ( (x - mean_x) ^2 )
+a <- mean_y - b * mean_x
+return(list(a = a, b = b))
+}
+
+```
+
+
+Problem 1b)
+Verify that the function my_lm that you wrote in Problem 1a) is correct by running my_lm on
+a vector x of length three with values given by the first three digits of your student number
+(one value per digit), and a vector y given by the last three digits of your student number.
+Print the values that my_lm returns. Then, do the same regression with the R function lm and
+print the resulting slope and y-intercept. Note whether or not the values returned by the two
+methods are the same.
+```{r}
+## write answer here
+x <- c(1, 2, 3)
+y <- c(7, 8, 9)
+my_lm(x, y)
+
+lm(y ~ x)
+```
+
+
+Problem 2)
+In the canvas folder for this lab is the SQLite database xcoretail.sqlite discussed in class.
+For each month in the range January 2011 to August 2011 (inclusive), calculate Z Co Retail’s
+total revenue for that month. Provide code, and plot the revenue by month (your y-axis can
+be 1, 2, 3, … instead of dates, but make sure to label the axes clearly with units).
+A description of the database follows. This database has two tables: sales and prices. The
+table sales contains one row for each sale that the company made during the reporting period.
+The table sales has three columns:
+• StockCode: a string indicating the product identifier.
+• Quantity: an integer indicating how much product was sold.
+• InvoiceDate: a string indicating the date of the sale.
+2
+The table prices is a table indicating the price of each product in the company’s inventory
+and has four columns:
+• StockCode: a string indicating the product identifier (matching the identifiers in the
+table sales).
+• Description: a string describing the product.
+• UnitPrice: the price in USD of the product.
+While we want to eventually plot the total sales across all products, we will first do this for a
+single product.
+
+Part a)
+Using the class code as a template, construct a plot showing the total sales of the item with
+stock code 71053 for the 8 months from 2011-01 to 2011-08. To do this you will need to first
+extract the total number of items sold each month and then, using information in the prices
+table, compute the value of these sales, in USD. Plot this revenue against the month.
+
+```{r}
+## write answer here
+library(RSQLite)
+library(DBI)
+## multiple ways to solve this
+db <- dbConnect(SQLite(), dbname = "xcoretail.sqlite")
+price_query <- "SELECT UnitPrice FROM prices WHERE StockCode = '71053'"
+request <- dbSendQuery(db, price_query)
+item_price <- as.numeric(dbFetch(request))
+dbClearResult(request)
+item_price
+
+months <- paste0("2011-0", 1:8)
+counts <- rep(NA, 8)
+sales <- rep(NA, 8)
+for(i in 1:8){
+query1 <- sqlInterpolate(db, "SELECT SUM(Quantity) AS Total
+FROM sales
+3
+WHERE InvoiceDate LIKE ?month
+AND StockCode = '71053'",
+month = paste0(months[i], "%"))
+request <- dbSendQuery(db, query1)
+counts[i] <- as.numeric(dbFetch(request))
+sales[i] <- counts[i] * item_price
+dbClearResult(request)
+}
+plot(x = 1:8, y = sales, type = "l", ylab = "Revenue (USD)", xlab = "Month")
+```
+
+
+Part b)
+Now, potentially using a similar approach to Part a, compute the total revenue per month
+across all items in this database.
+```{r}
+## write answer here
+total_sales <- data.frame()
+months <- paste0("2011-0", 1:8)
+for(i in 1:8){
+query1 <- sqlInterpolate(db, "SELECT StockCode, SUM(Quantity) AS Total
+FROM sales
+4
+WHERE InvoiceDate LIKE ?month
+GROUP BY StockCode",
+month = paste0(months[i], "%"))
+request <- dbSendQuery(db, query1)
+curr_month <- dbFetch(request)
+curr_month$Month <- months[i]
+total_sales <- rbind(total_sales, curr_month)
+dbClearResult(request)
+}
+total_sales$Sales <- NA
+prices <- dbReadTable(db, "prices")
+for(i in 1:nrow(total_sales)){
+item_price <- prices[prices$StockCode == total_sales$StockCode[i],
+"UnitPrice"]
+total_sales$Sales[i] <- total_sales$Total[i] * item_price
+}
+month_sales <- data.frame(month = months, total_sales = NA)
+for(i in 1:length(months)){
+monthly_sales <- total_sales[total_sales$Month == months[i], "Sales"]
+month_sales$total_sales[i] <- sum(monthly_sales)
+}
+plot(x = 1:8, y = month_sales$total_sales, type = "l", xlab = "Months",
+ylab = "Revenue (USD)")
+```
+
+
